@@ -1,0 +1,38 @@
+/*C5*/SET SCHEMA PUBLIC
+DISCONNECT
+/*C6*/SET SCHEMA PUBLIC
+INSERT INTO TESTCASE_RUN VALUES(55,7,4,0,'2015-03-01','Connect to localhost:8080 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused: connect')
+COMMIT
+DELETE FROM HOSTS WHERE ID=0
+INSERT INTO HOSTS VALUES(0,'Local Machine','localhost',8080,0,0)
+COMMIT
+DELETE FROM HOSTS WHERE ID=4
+INSERT INTO HOSTS VALUES(4,'Local Machine','localhost',7080,0,1)
+COMMIT
+/*C7*/SET SCHEMA PUBLIC
+INSERT INTO TESTCASE_RUN VALUES(56,7,4,1,'2015-03-02','{"id":1,"testCategoryId":0,"hostname":"localhost","port":9090,"name":"DEV VM (via Proxy)","secureHttp":false}')
+COMMIT
+INSERT INTO TESTCASE_RUN VALUES(57,7,4,1,'2015-03-02','{"id":1,"testCategoryId":0,"hostname":"localhost","port":9090,"name":"DEV VM (via Proxy)","secureHttp":false}')
+COMMIT
+INSERT INTO TESTCASE_RUN VALUES(58,6,4,1,'2015-03-02','{"id":0,"testCategoryId":0,"hostname":"localhost","port":8080,"name":"Local Machine","secureHttp":false}')
+COMMIT
+DELETE FROM TESTCASE_INSTANCE WHERE ID=6
+INSERT INTO TESTCASE_INSTANCE VALUES(6,'Get HOST Instance','Get HOST Instance',10,0)
+COMMIT
+DELETE FROM TESTCASE_VALUES WHERE ID=4
+COMMIT
+INSERT INTO TESTCASE_VALUES VALUES(37,6,'hostid','1')
+COMMIT
+DELETE FROM TESTCASE_INSTANCE WHERE ID=6
+INSERT INTO TESTCASE_INSTANCE VALUES(6,'Get HOST Instance','Get HOST Instance',10,0)
+COMMIT
+DELETE FROM TESTCASE_VALUES WHERE ID=37
+COMMIT
+INSERT INTO TESTCASE_VALUES VALUES(38,6,'hostid','1')
+COMMIT
+INSERT INTO TESTCASE_RUN VALUES(59,7,4,1,'2015-03-02','{"id":1,"testCategoryId":0,"hostname":"localhost","port":9090,"name":"DEV VM (via Proxy)","secureHttp":false}')
+COMMIT
+INSERT INTO TESTCASE_RUN VALUES(60,6,4,1,'2015-03-02','{"id":1,"testCategoryId":0,"hostname":"localhost","port":9090,"name":"DEV VM (via Proxy)","secureHttp":false}')
+COMMIT
+/*C6*/DISCONNECT
+/*C7*/DISCONNECT
