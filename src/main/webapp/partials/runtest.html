@@ -1,0 +1,116 @@
+<div ng-controller="RunTestController">
+<h3>Run Test Case Instance</h3>
+<br/>
+
+<div class="alert alert-danger alert-dismissible" role="alert" ng-if="errormessage != null">
+  <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+  <strong>Error!</strong> {{errormessage}}
+</div>
+
+<div class="alert alert-success alert-dismissible" role="alert" ng-if="infomessage != null">
+  <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+  {{infomessage}}
+</div>
+
+<div ng-show="showlist" class="panel panel-default">
+<div class="panel-heading"><h4>Test Case Instances Listing</h4></div>
+<div class="panel-body">	
+
+<form role="search" class="navbar-form navbar-left">
+<button ng-disabled="(selectedTests.length == 0) || (hosts.length == 0)" type="button" class="btn btn-primary" ng-click="runSelectedTests()"><span class="glyphicon glyphicon-play"></span> Run Test</button>
+<div class="input-group">
+	<span class="input-group-addon">Hosts:</span>
+	<select class="form-control" ng-model="selectedHostId" ng-change="handleHostChange()">
+			<option  ng-repeat="host in hosts" value="{{host.id}}" >{{host.name}}</option>
+	</select>
+	<span disp-hostname host="selectedHost" class="input-group-addon"></span>
+</div>
+</form>
+
+<form role="search" class="navbar-form navbar-right">
+<div class="input-group">
+<span class="input-group-addon glyphicon glyphicon-search"></span>
+<input class="form-control" type="text" placeholder="Filter ..." ng-model="searchText">
+</div>
+<div class="form-group">
+<div class="col-xs-2"> 
+	<select class="form-control" id="categories" ng-model="selectedCategoryId" ng-change="refresh()">
+			<option ng-repeat="cate in categories" value="{{cate.id}}">{{cate.name}}</option>			
+	</select>
+</div>
+</div>
+<button class="btn btn-primary" ng-click="refresh()"><span class="glyphicon glyphicon-refresh"></span> Refresh</button>
+</form>		
+
+<table class="table table-condensed">
+	<tr><th></th><th>Name</th><th>Description</th><th></th></tr>
+	<tr ng-repeat="case in testcaseinstances | filter:searchText">
+		<td><input type="checkbox" check-list selected-items-array="selectedTests" value="{{case.id}}"/></td>
+		<td>{{case.name}}</td>
+		<td>{{case.description}}</td>
+		<td>
+			  <button class="btn btn-default btn-sm" type="button" ng-click="runThisTest(case.id)"><span class="glyphicon glyphicon-play"></span></button>
+			<div class="btn-group pull-right">			  
+			  <button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+			    <span class="caret"></span>
+			    <span class="sr-only">Toggle Dropdown</span>
+			  </button>
+			  <ul class="dropdown-menu" role="menu">
+			    <li><a ng-click="getCurlForTestInstance(case.id)"><span class="glyphicon glyphicon-copyright-mark"></span> Get CURL</a></li>
+			    <li><a ng-click="editTestInstance(case.id)"><span class="glyphicon glyphicon-edit"></span> Edit</a></li>
+			    <li><a ng-click="deleteTestInstance(case.id)"><span class="glyphicon glyphicon-trash"></span> Delete</a></li>
+			  </ul>
+			</div>					
+		</td>
+	</tr>	
+</table>
+</div>
+</div>
+
+<!-- Run form, in case user want to change the data values defined for this test run instance -->
+<div ng-show="showtestinstanceform" class="panel panel-default">
+<div class="panel-heading"><h4>Test Instance</h4></div>
+<div class="panel-body">
+    <form class="form-horizontal">
+        <div class="form-group">
+            <label for="testcase" class="control-label col-xs-2" valign="top">Test Case</label>
+            <div class="col-xs-10" id="testcase">
+            	Name: {{testForm.name}}<br/>
+            	Rest Url: {{testForm.restUrl}}<br/>
+            	Data: {{testForm.data}}
+			</div>            
+		</div>    	
+        <div class="form-group">
+            <label for="name" class="control-label col-xs-2">Name</label>
+            <div class="col-xs-10">
+            <input type="text" class="form-control" id="name" placeholder="Name" ng-model="testInstanceForm.name">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="description" class="control-label col-xs-2">Description</label>
+            <div class="col-xs-10">
+            <input type="text" class="form-control" id="description" placeholder="Description" ng-model="testInstanceForm.description">
+            </div>
+        </div>
+        <div class="form-group">
+        <label for="description" class="control-label col-xs-2">Parameter Values</label>
+        </div>
+        <hr/>
+        <div class="form-group" ng-repeat="tcv in testInstanceForm.testCaseValues" ng-if="testInstanceForm.testCaseValues">        
+            <label for="{{tcv.name}}" class="control-label col-xs-2">{{tcv.name}}</label>
+            <div class="col-xs-10">
+            	<input type="text" class="form-control" id="{{tcv.name}}" ng-model="tcv.value"> <span ng-if="tcv.required">(required)</span>            	
+            </div>
+        </div>
+        <div class="form-group">
+        	<div class="col-xs-offset-2 col-xs-10 pull-right">
+        	<button class="btn btn-primary" ng-click="saveTestCaseInstance()"><span class="glyphicon glyphicon-play"></span> Run</button>
+        	<button class="btn btn-primary" ng-click="saveTestCaseInstance()"><span class="glyphicon glyphicon-ok"></span> Save</button>
+        	<button class="btn btn-default" ng-click="cancelEditInstance()"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+        	</div>
+        </div>
+	</form>
+</div>	
+</div>
+
+</div>

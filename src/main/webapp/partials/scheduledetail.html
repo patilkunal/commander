@@ -1,0 +1,42 @@
+<div ng-controller="ScheduleDetailController">
+<h3>Schedules</h3>
+
+<div class="panel panel-default">
+	<div class="panel-heading">
+		<h4 ng-if="schedule.id == -1">New Schedule</h4>
+		<h4 ng-if="schedule.id > -1">Edit Schedule</h4>
+	</div>
+	<div class="panel-body">
+    	<form class="form-horizontal" name="frm">
+	        <div class="form-group">
+	            <label for="name" class="control-label col-sm-2">Name</label>
+	            <div class="col-xs-10">
+	            <input type="text" class="form-control" id="name" name="name" placeholder="Name" ng-model="schedule.name" required>
+	            <span ng-show="frm.name.$dirty && frm.name.$error.required">(Required)</span>
+	            </div>
+	        </div>
+	        <div class="form-group">
+	            <label for="cronExpression" class="control-label col-sm-2">Cron Expression</label>
+	            <div class="col-xs-10">
+	            <input type="text" class="form-control" id="cronExpression" name="cronExpression" placeholder="Cron Expression" ng-model="schedule.cronExpression" required>
+	            <span ng-show="frm.cronExpression.$dirty && frm.cronExpression.$error.required">(Required)</span>
+	            </div>
+	        </div>
+	        <div class="form-group">
+	            <label for="active" class="control-label col-sm-2">Active</label>
+	            <div class="col-xs-2">
+					<select class="form-control" id="active" name="active" ng-model="schedule.active">
+							<option ng-repeat="val in ['true', 'false']" value="{{val}}">{{val}}</option>			
+					</select>
+	            </div>
+	        </div>
+	        <div class="form-group">
+	        	<div class="col-xs-offset-2 col-xs-10 pull-right">
+	        	<button class="btn btn-primary" ng-click="saveSchedule()" ng-disabled="frmhost.$invalid"><span class="glyphicon glyphicon-ok"></span> Save</button>
+	        	<button type="reset" class="btn btn-default" ng-click="cancelSave()"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+	        	</div>
+	        </div>    
+		</form>
+	</div>
+</div>
+</div>

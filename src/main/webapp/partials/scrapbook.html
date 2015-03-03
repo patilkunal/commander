@@ -1,0 +1,16 @@
+<!-- home.html -->
+<div class="panel panel-default">
+<div class="panel-heading"></div>
+<div class="panel-body">
+	<div class="pull-left" d3-barchart chartwidth="300" chartheight="300" xvaluefrom="name" yvaluefrom="success" resturl="testruns.json" barcolor="#0c9418" ylabel="Success"></div>	
+	<div class="pull-right" d3-barchart chartwidth="300" chartheight="300" xvaluefrom="name" yvaluefrom="failures" resturl="testruns.json" barcolor="#b31a01" ylabel="Failures"></div>
+</div>	
+</div>
+
+<div class="panel panel-default">
+<div class="panel-heading"></div>
+<div class="panel-body">
+	<div class="pull-left" d3-grouped-barchart chartwidth="400" chartheight="300" xvaluefrom="name" yvaluefrom="graphvars" resturl="testruns.json" barcolors="graphcolors" ylabel="Count"></div>
+	<div class="pull-right" d3-piechart pie-value="value" pie-label="label" chartsize="200" resturl="pie-data.json"></div>
+</div>
+</div>		

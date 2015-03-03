@@ -1,0 +1,28 @@
+[
+	{
+		"category": "Batch",
+		"name" : "BSID Import",
+		"success" : 30,
+		"failures" : 5
+	},
+	{
+		"category": "Batch",
+		"name" : "VOD Import",
+		"success" : 22,
+		"failures" : 3
+	},
+	{
+		"category": "Batch",
+		"name" : "Lucene Rebuild",
+		"success" : 15,
+		"failures" : 2
+	},
+	{
+		"category": "Batch",
+		"name" : "On Data",
+		"success" : 27,
+		"failures" : 9
+	}
+
+	
+]

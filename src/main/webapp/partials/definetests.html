@@ -1,0 +1,163 @@
+<div ng-controller="DefineTestController">
+<h3>Tests Cases</h3>
+<br/>
+
+<div class="alert alert-danger alert-dismissible" role="alert" ng-if="errormessage != null">
+  <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+  <strong>Error!</strong> {{errormessage}}
+</div>
+
+<div class="alert alert-success alert-dismissible" role="alert" ng-if="infomessage != null">
+  <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+  {{infomessage}}
+</div>
+
+<div ng-show="showlist" class="panel panel-default">
+<div class="panel-heading"><h4>Test Case List</h4></div>
+<div class="panel-body">
+<form role="search" class="navbar-form navbar-left">
+<div class="input-group">
+<span class="input-group-addon glyphicon glyphicon-search"></span>
+<input class="form-control" type="text" placeholder="Filter ..." ng-model="searchText">
+</div>
+</form>
+<form role="search" class="navbar-form navbar-right">
+<div class="form-group">
+<div class="col-xs-2"> 
+	<select class="form-control" id="categories" ng-model="selectedCategoryId" ng-change="refresh()">
+			<option ng-repeat="cate in categories" value="{{cate.id}}">{{cate.name}}</option>			
+	</select>
+</div>
+</div>
+<button class="btn btn-primary" ng-click="refresh()"><span class="glyphicon glyphicon-refresh"></span> Refresh</button> 
+<button class="btn btn-primary" ng-click="createTestCase()"><span class="glyphicon glyphicon-plus"></span> Create Test</button>
+</form>
+<br/>
+<table class="table table-condensed">
+	<tr><th>Name</th><th>Description</th><th></th></tr>
+	<tr ng-repeat="case in testcases | filter:searchText">
+		<td>{{case.name}} <span class="badge">{{case.instances}}</span></td>
+		<td>{{case.description}}</td>
+		<td>
+			<div class="btn-group pull-right">
+			  <button type="button" class="btn btn-primary" ng-click="createTestCaseInstance(case.id)"><span class="glyphicon glyphicon-star"></span> Create Instance</button>
+			  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+			    <span class="sr-only">Toggle Dropdown</span>
+			    <span class="caret"></span>
+			  </button>
+			  <ul class="dropdown-menu" role="menu">
+			    <li><a ng-click="editTestCase(case.id)"><span class="glyphicon glyphicon-edit"></span> Edit</a></li>
+			    <li><a ng-click="deleteTestCase(case.id)"><span class="glyphicon glyphicon-trash"></span> Delete</a></li>
+			  </ul>
+			</div>					
+		</td>
+	</tr>	
+</table>
+</div>			
+</div>
+
+<div ng-show="showtestform" class="panel panel-default">
+<div class="panel-heading"><h4 ng-if="testForm.id == -1">Create Test Case</h4>
+<h4 ng-if="testForm.id > -1">Edit Test Case</h4>
+</div>
+<div class="panel-body">
+    <form class="form-horizontal" name="frmtestcase">
+        <div class="form-group">
+            <label for="category" class="control-label col-xs-2">Category</label>
+            <div class="col-xs-2">
+            <select class="form-control" id="category" ng-model="testForm.testCategoryId">
+            	<option ng-repeat="cate in categories" value="{{cate.id}}">{{cate.name}}</option>
+            </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="name" class="control-label col-xs-2">Name</label>
+            <div class="col-xs-10">
+            <input type="text" class="form-control" id="name" name="name" placeholder="Name" ng-model="testForm.name" required>
+            <span ng-show="frmtestcase.name.$dirty && frmtestcase.name.$error.required">(Required)</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="description" class="control-label col-xs-2">Description</label>
+            <div class="col-xs-10">
+            <input type="text" class="form-control" id="description" name="description" placeholder="Description" ng-model="testForm.description">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="method" class="control-label col-xs-2">Method</label>
+            <div class="col-xs-2">
+            <select class="form-control" id="method" ng-model="testForm.method">
+            	<option ng-repeat="m in methodTypes" value="{{m}}">{{m}}</option>
+            </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="restUrl" class="control-label col-xs-2">REST Url</label>
+            <div class="col-xs-10">
+            <input type="text" class="form-control" id="restUrl" name="restUrl" placeholder="REST Url (exclude host and port)" ng-model="testForm.restUrl">
+            <span ng-show="frmtestcase.restUrl.$dirty && frmtestcase.restUrl.$error.required">(Required)</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="data" class="control-label col-xs-2">Data</label>
+            <div class="col-xs-10">
+            <textarea class="form-control" id="data" name="data" placeholder="Data" ng-model="testForm.data"></textarea>
+            </div>
+        </div>
+        <div class="form-group">
+        	<div class="col-xs-offset-2 col-xs-10 pull-right">
+        	<button class="btn btn-primary" ng-click="saveTest()" ng-disabled="frmtestcase.$invalid"><span class="glyphicon glyphicon-ok"></span> Save</button>
+        	<button class="btn btn-default" ng-click="cancelSave()"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+        	</div>
+        </div>
+    </form>
+</div>
+</div>
+
+<div ng-show="showtestinstanceform" class="panel panel-default">
+<div class="panel-heading"><h4>Create Test Case Instance</h4></div>
+<div class="panel-content">
+    <form class="form-horizontal" name="frmTestInstance">
+        <div class="form-group">
+            <label for="testcase" class="control-label col-xs-2" valign="top">Test Case</label>
+            <div class="col-xs-10" id="testcase">
+            	Name: {{testForm.name}}<br/>
+            	Rest Url: {{testForm.restUrl}}<br/>
+            	Data: {{testForm.data}}
+			</div>            
+		</div>    	
+        <div class="form-group">
+            <label for="name" class="control-label col-xs-2">Name</label>
+            <div class="col-xs-10">
+            <input type="text" class="form-control" id="name" name="name" placeholder="Name" ng-model="testInstanceForm.name">
+            <span ng-show="frmTestInstance.name.$dirty && frmTestInstance.name.$error.required">(Required)</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="description" class="control-label col-xs-2">Description</label>
+            <div class="col-xs-10">
+            <input type="text" class="form-control" name="description" id="description" placeholder="Description" ng-model="testInstanceForm.description">
+            </div>
+        </div>
+        <div class="form-group">
+        <label for="description" class="control-label col-xs-2">Parameter Values</label>
+        </div>
+        <hr/>
+        <div class="form-group" ng-repeat="tcv in testInstanceForm.testCaseValues" ng-if="testInstanceForm.testCaseValues">        
+            <label for="{{tcv.name}}" class="control-label col-xs-2">{{tcv.name}}</label>
+            <div class="col-xs-10">
+            	<input type="text" class="form-control" id="{{tcv.name}}" name="{{tcv.name}}" ng-model="tcv.value" required>
+            	<span ng-show="frmTestInstance.{{tcv.name}}.$error.required">(Required)</span>            	
+            </div>
+        </div>
+        <div class="form-group">
+        	<div class="col-xs-offset-2 col-xs-10 pull-right">
+        	<button class="btn btn-primary" ng-click="saveTestCaseInstance()" ng-disabled="frmTestInstance.$invalid"><span class="glyphicon glyphicon-ok"></span> Save</button>
+        	<button class="btn btn-default" ng-click="cancelSave()"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+        	</div>
+        </div>
+	</form>
+</div>	
+</div>
+
+</div>
