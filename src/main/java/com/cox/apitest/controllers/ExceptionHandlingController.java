@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.cox.apitest.exception.CronExpressionException;
+
 @ControllerAdvice
 public class ExceptionHandlingController {
 
@@ -32,10 +34,6 @@ public class ExceptionHandlingController {
 	public @ResponseBody String handleHttpHostConnectException(HttpHostConnectException exception) {
 		logger.error("Error : " + exception.getMessage());
 		return exception.getMessage();
-//		ModelAndView mv = new ModelAndView();
-//		mv.addObject("exception", exception);
-//		mv.setViewName("error");
-//		return mv;
 	}
 	
 	@ExceptionHandler({DataAccessException.class})
@@ -43,10 +41,13 @@ public class ExceptionHandlingController {
 	public @ResponseBody String handleDatabaseErrors(DataAccessException exception) {
 		logger.error("Database error : " + exception.getMessage(), exception);
 		return exception.getMessage();
-//		ModelAndView mv = new ModelAndView();
-//		mv.addObject("exception", exception);
-//		mv.setViewName("error");
-//		return mv;
+	}
+	
+	@ExceptionHandler({CronExpressionException.class})
+	@ResponseStatus(value=HttpStatus.BAD_REQUEST)
+	public @ResponseBody String handleCronExpressionError(CronExpressionException e) {
+		logger.error("Cron Expression Exception : "  + e.getMessage());
+		return e.getMessage();
 	}
 	
 	

@@ -1,73 +1,81 @@
-/**
- * 
- */
+(function(){
+'use strict';
 
-myservices.TestResultService = function($rootScope) {
-	var service = {};
-	
-	service.testresults = [];
-	
-	service.clearTestResults = function() {
-		this.testresults = [];
-	};
-	
-	service.setTestResults = function(results) {
-		this.testresults = results;
-	};
-	
-	service.updateTestResult = function(data) {
-		console.log(data);
-		var obj = angular.fromJson(data);
-		for(var i=0; i < this.testresults.length; i++) {
-			console.log(" id " + this.testresults[i].id + " : " + obj.testInstanceId);
-			if(this.testresults[i].id == obj.testInstanceId) {
-				console.log("setting value");
-				if(obj.success) {
-					this.testresults[i].result = obj.result;
-				} else {
-					this.testresults[i].result = obj.error;
-				}
-				this.broadcastItem();
+var initialRunTestDataService = function($q, TestCaseService, HostService) {
+	return function() {
+		
+		var returnobj = {
+			testcategories: [],
+			testinstances: [],
+			hosts: []
+		};
+		
+		return $q.when(TestCaseService.getTestCategories()).then(function(result) {
+			var categories = result.data;
+			if(angular.isArray(categories)) {
+				returnobj.testcategories = categories;
+				var selectedCategoryId = categories[0].id; 
+				var testInstancePromise = TestCaseService.getTestInstances(selectedCategoryId);	
+				var hostDataPromise = HostService.getHostsByCategory(selectedCategoryId);
+				//Wait for both promises to get fullfilled
+				return $q.all([testInstancePromise, hostDataPromise]).then(function(result){
+					var ret = {
+						testcategories: categories,
+						testinstances: result[0].data,
+						hosts: result[1].data
+					};
+					return ret;
+				});
+			} else {
+				console.log(returnobj);
+				return returnobj;
 			}
-		}
+		});
+		
+		
 	};
-	
-	service.broadcastItem = function() {
-        $rootScope.$broadcast('handleBroadcast');
-    };
-	
-	
-	return service;
 };
 
-mycontrollers.RunTestController = function($scope, $modal, TestCaseService, HostService, TestExecutorService, TestResultService) {
+angular.module("app")
+.factory("initialRunTestDataService", initialRunTestDataService);
+
+var RunTestControllerDef = function($modal, TestCaseService, HostService, TestExecutorService, TestResultService, MessageService, initialData) {
 	
-	$scope.errormessage = null;
-	$scope.infomessage = null;
+	this.showlist = true;
+	this.showtestinstanceform = false;
 	
-	$scope.showlist = true;
-	$scope.showtestinstanceform = false;
+	this.selectedTests = [];
+
+	this.categories = initialData.testcategories;
+	this.selectedCategoryId = this.categories[0].id;
 	
-	$scope.selectedTests = [];
+	this.hosts = initialData.hosts;
+	this.selectedHostId = this.hosts[0].id;
+	this.selectedHost = this.hosts[0];
 	
-	//$scope.tests = [];
+	this.testInstanceForm = {};
+	this.testForm = {};
 	
-	$scope.toggleSelection = function(id) {
-		var idx = $scope.selectedTests.indexOf(id);
+	this.testcaseinstances = initialData.testinstances;
+	
+	//this.tests = [];
+	
+	this.toggleSelection = function(id) {
+		var idx = this.selectedTests.indexOf(id);
 
 	    // is currently selected
 	    if (idx > -1) {
-	      $scope.selectedTests.splice(idx, 1);
+	      this.selectedTests.splice(idx, 1);
 	    } else {
-	      $scope.selectedTests.push(id);
+	      this.selectedTests.push(id);
 	    }
 	};
 	
-	$scope.runThisTest = function (testid) {
+	this.runThisTest = function (testid) {
 		console.log("Running test for id " + testid);
 		var testresults = [];
 		
-		var ti = $scope.getTestInstanceById(testid);
+		var ti = this.getTestInstanceById(testid);
 		testresults.push({id: ti.id, name: ti.name, result: 'Pending'});
 		TestResultService.setTestResults(testresults);
 
@@ -79,7 +87,7 @@ mycontrollers.RunTestController = function($scope, $modal, TestCaseService, Host
 			backdrop: 'static'
 		});
 
-		TestExecutorService.runTest($scope.selectedHost.id, testid)
+		TestExecutorService.runTest(this.selectedHost.id, testid)
 		   .success(function(data,status,header,config) {
 				var respstring = data;
 				if(angular.isObject(data)) {
@@ -97,11 +105,11 @@ mycontrollers.RunTestController = function($scope, $modal, TestCaseService, Host
 			});
 	};
 	
-	$scope.runSelectedTests = function() {
+	this.runSelectedTests = function() {
 		
 		var testresults = [];
-		for(var i=0; i < $scope.selectedTests.length; i++) {
-			var ti = $scope.getTestInstanceById($scope.selectedTests[i]);
+		for(var i=0; i < this.selectedTests.length; i++) {
+			var ti = this.getTestInstanceById(this.selectedTests[i]);
 			testresults.push({id: ti.id, name: ti.name, result: 'Pending'});
 		}
 		TestResultService.setTestResults(testresults);
@@ -114,9 +122,9 @@ mycontrollers.RunTestController = function($scope, $modal, TestCaseService, Host
 			backdrop: 'static'
 		});
 		
-		for(var i=0; i < $scope.selectedTests.length; i++) {
-			var ti_id = $scope.selectedTests[i];
-			TestExecutorService.runTest($scope.selectedHost.id, ti_id)
+		for(var i=0; i < this.selectedTests.length; i++) {
+			var ti_id = this.selectedTests[i];
+			TestExecutorService.runTest(this.selectedHost.id, ti_id)
 			.success(function(data, status, headers, config) {
 				var respstring = data;
 				if(angular.isObject(data)) {
@@ -134,52 +142,22 @@ mycontrollers.RunTestController = function($scope, $modal, TestCaseService, Host
 			});
 		}
 		
-		$scope.selectedTests = [];
+		this.selectedTests = [];
 	};
 	
 	
-	$scope.showList = function() {
-		$scope.showlist = true;
-		$scope.showtestinstanceform = false;		
+	this.showList = function() {
+		this.showlist = true;
+		this.showtestinstanceform = false;		
 	};
 	
-	$scope.showTestInstanceForm = function() {
-		$scope.showlist = false;
-		$scope.showtestinstanceform = true;		
+	this.showTestInstanceForm = function() {
+		this.showlist = false;
+		this.showtestinstanceform = true;		
 	};
 	
-	$scope.categories = [],
-	$scope.selectedCategoryId = 0,
-	$scope.hosts = [];
-	$scope.selectedHostId = 0;
 	
-	$scope.testInstanceForm = {};
-	$scope.testForm = {};
-	
-	$scope.selectedHost = {hostname: '', port: ''};
-	$scope.testcaseinstances = [];
-	
-	TestCaseService.getTestCategories().success(function(data, status, headers) {
-		$scope.categories = data;
-		$scope.selectedCategoryId = $scope.categories[0].id; 
-		TestCaseService.getTestInstances($scope.selectedCategoryId).success(function(data, status, headers) {
-			$scope.testcaseinstances = data;
-		});
-
-		HostService.getHostsByCategory($scope.selectedCategoryId).success(function(data2, status, headers) {
-			$scope.hosts = data2;
-			if($scope.hosts.length > 0) {
-				$scope.selectedHost = $scope.hosts[0];
-				$scope.selectedHostId = $scope.selectedHost.id;
-			}
-		});
-	});
-	
-	
-	
-	//$scope.$watchCollection('selectedHost', function(newval, oldval) {  });
-
-	$scope.refresh = function() {
+	this.refresh = function() {
 		var modalInstance = $modal.open({
 			templateUrl: 'progressModal.html',
 			controller: 'ProgressDialogController',
@@ -193,41 +171,42 @@ mycontrollers.RunTestController = function($scope, $modal, TestCaseService, Host
 			}
 		});			
 
-		HostService.getHostsByCategory($scope.selectedCategoryId).success(function(data2, status, headers) {
-			$scope.hosts = data2;
-			if($scope.hosts.length > 0) {
-				$scope.selectedHost = $scope.hosts[0];
-				$scope.selectedHostId = $scope.selectedHost.id;
+		var self = this;
+		HostService.getHostsByCategory(this.selectedCategoryId).success(function(data2, status, headers) {
+			self.hosts = data2;
+			if(self.hosts.length > 0) {
+				self.selectedHost = self.hosts[0];
+				self.selectedHostId = self.selectedHost.id;
 			}
 		});
 
-		TestCaseService.getTestInstances($scope.selectedCategoryId).success(function(data, status, headers) {
-			$scope.testcaseinstances = data;
+		TestCaseService.getTestInstances(this.selectedCategoryId).success(function(data, status, headers) {
+			self.testcaseinstances = data;
 			modalInstance.close();
 		}).error(function(data, status, headers) {
 			modalInstance.close();
-			$scope.errormessage = "Error in refreshing list : " + data;
+			MessageService.showError("Error in refreshing list : " + data);
 		});
 	};
 	
-	$scope.handleHostChange = function() {
-		for(var i=0; i < $scope.hosts.length; i++) {
-			if($scope.selectedHostId == $scope.hosts[i].id) {
-				$scope.selectedHost = $scope.hosts[i];
+	this.handleHostChange = function() {
+		for(var i=0; i < this.hosts.length; i++) {
+			if(this.selectedHostId == this.hosts[i].id) {
+				this.selectedHost = this.hosts[i];
 				break;
 			}
 		}
 	};
 	
-	$scope.getTestInstanceById = function(id) {
-		for(var i=0; i < $scope.testcaseinstances.length; i++) {
-			if($scope.testcaseinstances[i].id == id) 
-				return $scope.testcaseinstances[i];
+	this.getTestInstanceById = function(id) {
+		for(var i=0; i < this.testcaseinstances.length; i++) {
+			if(this.testcaseinstances[i].id == id) 
+				return this.testcaseinstances[i];
 		}
 	};
 	
-	$scope.getHostById = function(id) {
-		var hostlist = $scope.hosts;
+	this.getHostById = function(id) {
+		var hostlist = this.hosts;
 		for(var i=0; i < hostlist.length; i++) {
 			if(hostlist[i].id == id) {
 				return hostlist[i];
@@ -236,47 +215,10 @@ mycontrollers.RunTestController = function($scope, $modal, TestCaseService, Host
 		return null;
 	};
 	
-	//Not Used, now that we run tests in batch
-	$scope.runTestInstance = function(id) {
-		var testCaseInstance = $scope.getTestInstanceById(id);
+	this.editAndRun = function(id) {
+		var testCaseInstance = this.getTestInstanceById(id);
 		if(testCaseInstance != null) {
-			$scope.errormessage = null;
-			$scope.infomessage = null;
-			var progressMessage = "Running Test : " + testCaseInstance.name;
-			var modalInstance = $modal.open({
-				templateUrl: 'progressModal.html',
-				controller: 'ProgressDialogController',
-				size: 'sm', 
-				keyboard: false,
-				backdrop: 'static',
-				resolve: {
-					message: function() {
-						return progressMessage;
-					}
-				}
-			});			
-			
-			TestExecutorService.runTest($scope.selectedHost.id, id)			
-			.success(function(data, status, headers, config) {
-				modalInstance.close(); 				
-				var respstring = data;
-				if(angular.isObject(data)) {
-					respstring = angular.toJson(data);
-				}
-				$scope.infomessage = "Test Result : " + respstring;
-			}).error(function(data, status, headers, config){
-				modalInstance.close();
-				$scope.errormessage = "Error in executing test : " + status + " : " + data;
-			});
-		} else {
-			$scope.errormessage = "Unable to find Test Case Instance by id " + id;
-		}
-		
-	};
-	
-	$scope.editAndRun = function(id) {
-		var testCaseInstance = $scope.getTestInstanceById(id);
-		if(testCaseInstance != null) {
+			var self = this;
 			TestCaseService.getTestCase(testCaseInstance.testCaseId).success(function(data){
 				var testcase = data;
 			
@@ -289,12 +231,12 @@ mycontrollers.RunTestController = function($scope, $modal, TestCaseService, Host
 				
 				//Just for debug purpose
 				/*
-				var host = $scope.selectedHost.hostname;
-				var port = $scope.selectedHost.port;
+				var host = this.selectedHost.hostname;
+				var port = this.selectedHost.port;
 				alert(host + " " + port + " " + url + " " + data + " " + method);
 				*/
 				   
-				TestExecutorService.runEditedTest($scope.selectedHost.id, url, method, testdata).success(function(respdata){
+				TestExecutorService.runEditedTest(self.selectedHost.id, url, method, testdata).success(function(respdata){
 					alert("Response: " + respdata);
 				}).error(function(data, status) {
 					alert("Error in executing test");
@@ -305,18 +247,19 @@ mycontrollers.RunTestController = function($scope, $modal, TestCaseService, Host
 		}		
 	};
 	
-	$scope.editTestInstance = function(id) {
-		var testCaseInstance = $scope.getTestInstanceById(id);
+	this.editTestInstance = function(id) {
+		var self = this;
+		var testCaseInstance = this.getTestInstanceById(id);
 		if(testCaseInstance != null) {
-			$scope.testInstanceForm.id = testCaseInstance.id;
-	 		$scope.testInstanceForm.name = testCaseInstance.name;
-	 		$scope.testInstanceForm.description = testCaseInstance.description;
-	 		$scope.testInstanceForm.testCaseId = testCaseInstance.testCaseId;
+			this.testInstanceForm.id = testCaseInstance.id;
+	 		this.testInstanceForm.name = testCaseInstance.name;
+	 		this.testInstanceForm.description = testCaseInstance.description;
+	 		this.testInstanceForm.testCaseId = testCaseInstance.testCaseId;
 	 		if((testCaseInstance.testCaseValues != null) && (testCaseInstance.testCaseValues.length > 0)) {
-	 			$scope.testInstanceForm.testCaseValues = [];
+	 			this.testInstanceForm.testCaseValues = [];
 	 			for ( var i=0; i < testCaseInstance.testCaseValues.length; i++ ) {
 	 				var tcv = testCaseInstance.testCaseValues[i];
-	 				$scope.testInstanceForm.testCaseValues.push({
+	 				this.testInstanceForm.testCaseValues.push({
 	 					id: tcv.id,
 	 					name: tcv.name,
 	 					required: tcv.required,
@@ -324,37 +267,38 @@ mycontrollers.RunTestController = function($scope, $modal, TestCaseService, Host
 	 				});
 				}
 	 		}
-	 		TestCaseService.getTestCase($scope.testInstanceForm.testCaseId).success(function(data){
-	 			$scope.testForm = data;
-				$scope.showTestInstanceForm();
+	 		TestCaseService.getTestCase(this.testInstanceForm.testCaseId).success(function(data){
+	 			self.testForm = data;
+				self.showTestInstanceForm();
 	 		}).error(function(){
-	 			$scope.testForm.name = "[Error getting Test Case]";
-				$scope.showTestInstanceForm();
+	 			self.testForm.name = "[Error getting Test Case]";
+	 			self.showTestInstanceForm();
 	 		});
 		} else {
 			alert("Unable to find test case instance to edit");
 		}
 	};
 	
-	$scope.cancelEditInstance = function() {
-		$scope.showList();
+	this.cancelEditInstance = function() {
+		this.showList();
 	};
 	
-	$scope.saveTestCaseInstance = function() {
-		TestCaseService.saveTestInstance($scope.testInstanceForm).success(function(data){
-			$scope.addToList(data);
-			$scope.showList();
-			$scope.infomessage = "Successfully saved test case instance";
+	this.saveTestCaseInstance = function() {
+		var self = this;
+		TestCaseService.saveTestInstance(this.testInstanceForm).success(function(data){
+			self.addToList(data);
+			self.showList();
+			MessageService.showSuccess("Successfully saved test case instance");
 		}).error(function(data, status, headers, config) {
-			$scope.errormessage = "Error saving test case instance";
+			MessageService.showError("Error saving test case instance");
 		});
 	};
 	
-	$scope.addToList = function(testcaseinstance) {
+	this.addToList = function(testcaseinstance) {
 		var found = false;
 		var i=0;
-		for(; i < $scope.testcaseinstances.length; i++) {
-			if(testcaseinstance.id == $scope.testcaseinstances[i].id) {
+		for(; i < this.testcaseinstances.length; i++) {
+			if(testcaseinstance.id == this.testcaseinstances[i].id) {
 				found = true;
 				break;
 			}
@@ -362,25 +306,52 @@ mycontrollers.RunTestController = function($scope, $modal, TestCaseService, Host
 		
 		if(found) {
 			//update existing
-			$scope.testcaseinstances[i] = testcaseinstance;
+			this.testcaseinstances[i] = testcaseinstance;
 		} else {
-			$scope.testcaseinstances.push(testcaseinstance);
+			this.testcaseinstances.push(testcaseinstance);
 		}
 	};
 	
-	$scope.deleteTestInstance = function(id) {
+	this.deleteTestInstance = function(id) {
+		var self = this;
 		if(confirm("Do you really want to delete this test instance?")) {
 			TestCaseService.deleteTestInstance(id).then(function(){
-				$scope.infomessage = "Successfully deleted test case instance";
-				$scope.refresh();
+				MessageService.showSuccess("Successfully deleted test case instance");
+				self.refresh();
 			});
 		}
 	};
 	
-	$scope.getCurlForTestInstance = function(id) {
+	this.getCurlForTestInstance = function(id) {
 		//then returns data in format {data:'', status:200, config: {method:'', transformRequest:[], transformResponse: [], url:'', headers:{}}, , statusText:'OK'} 
-		TestCaseService.getCurl(id, $scope.selectedHostId).then(function(resp){
-			$scope.infomessage = resp.data;			
+		TestCaseService.getCurl(id, this.selectedHostId).then(function(resp){
+			MessageService.showInfo(resp.data);			
 		});
 	};
 };
+
+angular.module("runtests", ['ngRoute'])
+.config(['$routeProvider', function($routeProvider) {
+	$routeProvider
+		.when("/runtest", {
+						templateUrl: "partials/runtest.html", 
+						controller: "RunTestController",
+						controllerAs: "runtests",
+						resolve: { initialData: function(initialRunTestDataService) {
+									return initialRunTestDataService();
+								} 
+						}
+		}
+);	
+}])
+.controller("RunTestController", [
+                                  '$modal', 
+                                  'TestCaseService', 
+                                  'HostService', 
+                                  'TestExecutorService', 
+                                  'TestResultService', 
+                                  'MessageService', 
+                                  'initialData',                               
+                                  RunTestControllerDef]);
+
+})();

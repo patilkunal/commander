@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.cox.apitest.dao.TestCaseDAO;
-import com.cox.apitest.manager.TestManager;
+import com.cox.apitest.manager.TestRunManager;
 import com.cox.apitest.model.Statistics;
 import com.cox.apitest.model.StatisticsList;
 import com.cox.apitest.model.TestCaseCategory;
@@ -27,7 +27,7 @@ public class StatsController {
 	private TestCaseDAO dao;
 	
 	@Autowired
-	private TestManager mgr;
+	private TestRunManager mgr;
 	
 	@RequestMapping(value="/categories", method=RequestMethod.GET)
 	public @ResponseBody ArrayList<Statistics> getCategoriesStats() {
@@ -40,10 +40,13 @@ public class StatsController {
 			int success = 0;
 			int failures = 0;
 			for(TestCaseRun r : runs) {
-				if((r.getRunDate() != null) && (r.getOutput() != null)) {
-					@SuppressWarnings("unused")
-					int x = (r.isSuccess() ? success++ : failures++);
-				}
+				//if((r.getRunDate() != null) && (r.getOutput() != null)) {
+					if(r.isSuccess()) {
+						success++;
+					} else {
+						failures++;
+					}
+				//}
 			}
 			stats.add(new Statistics(c.getName(), c.getName(), success, failures));
 		}
@@ -61,7 +64,7 @@ public class StatsController {
 		filter.setTestCaseCategoryId(categoryId);
 		List<TestCaseRun> runs = dao.getTestCaseRuns(filter);
 		for(TestCaseRun r : runs) {
-			TestCaseInstance ti = mgr.getTestCaseInstance(r.getTestCaseInstanceId());
+			TestCaseInstance ti = r.getTestCaseInstance();
 			Statistics s = new Statistics(cat.getName(), ti.getName(), 0, 0);
 			Statistics stat = null;
 			if(!stats.contains(s)) {

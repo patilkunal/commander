@@ -1,35 +1,40 @@
-<div ng-controller="ScheduleController">
 <h3>Schedules</h3>
 
 <div class="panel panel-default">
 	<div class="panel-heading">Schedules</div>
 	<div class="panel-body">
+		<div class="panel panel-default">
+			<div class="panel-body">
+			<div class="pull-right" ng-show="scheduleCtrl.schedulerRunning">Scheduler is running ... <button type="button" class="btn btn-sm btn-default" ng-click="scheduleCtrl.pauseScheduler()">Pause</button></div>
+			<div class="pull-right" ng-show="!scheduleCtrl.schedulerRunning">Scheduler is paused!  <button type="button" class="btn btn-sm btn-warning" ng-click="scheduleCtrl.resumeScheduler()">Resume</button></div>
+			</div>
+		</div>
 		<form role="search" class="navbar-form navbar-left">
 			<div class="input-group">
 				<span class="input-group-addon glyphicon glyphicon-search"></span>
-				<input class="form-control" type="text" placeholder="Filter ..." ng-model="searchText">
+				<input class="form-control" type="text" placeholder="Filter ..." ng-model="scheduleCtrl.searchText">
 			</div>
 		</form>		
 		<form class="navbar-form navbar-right">
-			<button class="btn btn-primary" ng-click="getSchedules()"><span class="glyphicon glyphicon-refresh"></span> Refresh</button> 
-			<button class="btn btn-primary" ng-click="createSchedule()"><span class="glyphicon glyphicon-plus"></span> Add Schedule</button>
+			<button class="btn btn-primary" ng-click="scheduleCtrl.getSchedules()"><span class="glyphicon glyphicon-refresh"></span> Refresh</button> 
+			<button class="btn btn-primary" ng-click="scheduleCtrl.createSchedule()"><span class="glyphicon glyphicon-plus"></span> Add Schedule</button>
 		</form>
 		<br/>
 
 		<table class="table table-condensed">
 			<tr><th>Name</th><th>Cron Expression</th><th>Active</th><th></th></tr>
-			<tr ng-repeat="sch in scheduleList | filter:searchText">
+			<tr ng-repeat="sch in scheduleCtrl.scheduleList | filter:scheduleCtrl.searchText">
 				<td>{{sch.name}}</td><td>{{sch.cronExpression}}</td><td>{{sch.active}}</td>
 				<td>
 				<div class="btn-group pull-right">
 					<div class="pull-right">
-					  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+					  <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">
 					    <span class="sr-only">Toggle Dropdown</span>
 					    <span class="caret"></span>
 					  </button>
 					  <ul class="dropdown-menu" role="menu">
-					    <li><a ng-click="editSchedule(sch.id)"><span class="glyphicon glyphicon-edit"></span> Edit</a></li>
-					    <li><a ng-click="deleteSchedule(sch.id)"><span class="glyphicon glyphicon-trash"></span> Delete</a></li>
+					    <li><a ng-click="scheduleCtrl.editSchedule(sch.id)"><span class="glyphicon glyphicon-edit"></span> Edit</a></li>
+					    <li><a ng-click="scheduleCtrl.deleteSchedule(sch.id)"><span class="glyphicon glyphicon-trash"></span> Delete</a></li>
 					  </ul>
 					</div>
 				</div>
@@ -37,5 +42,4 @@
 			</tr>
 		</table>
 	</div>
-</div>
 </div>

@@ -1,3 +1,5 @@
+(function(){
+	
 var Host = function() {
 	this.id = -1;
 	this.hostname = '';
@@ -7,107 +9,106 @@ var Host = function() {
 	this.testCategoryId = 0;
 };
 
-mycontrollers.HostController = function($scope, $timeout, HostService, TestCaseService, MessageService) {
-	$scope.showlist = true;
-	$scope.showHostForm = false;
-/*	
-	$scope.errormessage = null;
-	$scope.infomessage = null;
+var initialHostDetailDataServiceDef = function($route, $q, HostService, TestCaseService) {
+	return function() {
+		var hostid = $route.current.params.hostid;
+		var categories = TestCaseService.getTestCategories();
+		var host = HostService.getHost(hostid);
+		if(hostid == 'new') {
+			return $q.when(categories).then(function(result){
+				return {
+					host: (new Host()),
+					categories: result.data
+				};
+			});
+		} else {
+			return $q.all([categories, host]).then(function(result){
+				return {
+					categories : result[0].data,
+					host: result[1].data
+				};
+			});
+		}
+	};
+};
+
+angular.module("app")
+.factory("initialHostDetailDataService", ['$route', '$q', 'HostService', 'TestCaseService', initialHostDetailDataServiceDef]);
+
+var HostDetailControllerDef = function($routeParams, $location, HostService, TestCaseService, MessageService, initialData) {
+	this.hostid = $routeParams.hostid;
+	this.hostForm = initialData.host;
+	this.categories = initialData.categories;
 	
-	$scope.hideinfo = function() {
-		$scope.infomessage = null;		
+	this.saveHost = function() {
+		var self = this;
+		HostService.saveHost(this.hostForm).success(function(data){
+			MessageService.showSuccess("Successfully updated host " + data.name);
+			self.refresh();
+			self.showList();
+		}).error(function(data, status){
+			MessageService.showError("Error is saving host : " + data);
+		});
 	};
 
-	$scope.info = function(msg) {
-		$scope.errormessage = null;
-		$scope.infomessage = msg;
-		$timeout($scope.hideinfo, 2000);
+	this.cancelSave = function() {
+		$location.url("/host");
 	};
 	
-	$scope.error = function(msg) {
-		$scope.errormessage = msg;
-		$scope.infomessage = null;		
-	};	
-*/	
-	$scope.showList = function() {
-		$scope.showlist = true;
-		$scope.showHostForm = false;
-	};
-	
-	$scope.showForm = function() {
-		$scope.showlist = false;
-		$scope.showHostForm = true;		
-	};
-	
-	$scope.hostForm = {};
-	$scope.hosts = [];
-	$scope.categories = [];
-	
-	TestCaseService.getTestCategories().success(function(data, status, headers) {
-		$scope.categories = data;
-		
-		HostService.getHosts().success(function(data, status) {
-			$scope.hosts = data;
+};
+
+var initialHostListDataServiceDef = function($q, HostService) {
+	return function() {
+		var hosts = HostService.getHosts();
+		return $q.when(hosts).then(function(result){
+			return {
+				hosts: result.data
+				};
 		});
-	});
+	};
+};
+
+angular.module("app")
+.factory("initialHostListDataService", ["$q", "HostService", initialHostListDataServiceDef]);
+
+var HostListControllerDef = function($location, HostService, TestCaseService, MessageService, initialData) {
+	this.hosts = initialData.hosts;
 	
-	$scope.refresh = function() {
+	this.refresh = function() {
+		var self = this;
 		HostService.getHosts().success(function(data, status) {
-			$scope.hosts = data;
+			self.hosts = data;
 		}).error(function(data, status){
 			MessageService.showError(data);
 		});
 	};
 	
-	$scope.addNewHost = function() {
-		$scope.hostForm = new Host();
-		$scope.hostForm.testCategoryId = $scope.categories[0].id;  
-		$scope.showForm();
+	this.addNewHost = function() {
+		$location.url("/host/new");
 	};
 	
-	$scope.editHost = function(id) {
-		var host = $scope.getHost(id);
-		if(host != null) {
-			$scope.hostForm.id = host.id;
-			$scope.hostForm.name = host.name;
-			$scope.hostForm.hostname = host.hostname;
-			$scope.hostForm.port = host.port;
-			$scope.hostForm.secureHttp = host.secureHttp;
-			$scope.hostForm.testCategoryId = host.testCategoryId;
-			$scope.showForm();
-		} else {
-			MessageService.showError("Unable to find the host with id " + id);
-		}
+	this.editHost = function(id) {
+		$location.url("/host/" + id);
 	};
 	
-	$scope.cancelSave = function() {
-		$scope.hostForm = {};
-		$scope.showList();
-	};
 	
-	$scope.deleteHost = function(id) {
+	this.deleteHost = function(id) {
+		var self = this;
 		if(confirm("Do you really want to delete the host?")) {
 			HostService.deleteHost(id).success(function(data, status) {
-				$scope.refresh();
+				self.refresh();
+				MessageService.showInfo("Successfully deleted Host");
+			}).error(function(data) {
+				MessageService.showError("Error in deleting host.");
 			});
 		}
 	};
 	
-	$scope.saveHost = function() {
-		HostService.saveHost($scope.hostForm).success(function(data){
-			MessageService.showInfo("Successfully updated host " + data.name);
-			$scope.refresh();
-			$scope.showList();
-		}).error(function(data, status){
-			MessageService.showError("Error is saving host : " + data);
-		});
-	};
-	
-	$scope.getHost = function(id) {
-		if(angular.isArray($scope.hosts) &&  ($scope.hosts.length > 0)) {
-			for(var i=0; i < $scope.hosts.length; i++) {
-				if($scope.hosts[i].id == id) {
-					return $scope.hosts[i];
+	this.getHost = function(id) {
+		if(angular.isArray(this.hosts) &&  (this.hosts.length > 0)) {
+			for(var i=0; i < this.hosts.length; i++) {
+				if(this.hosts[i].id == id) {
+					return this.hosts[i];
 				}
 			}
 		}
@@ -117,6 +118,30 @@ mycontrollers.HostController = function($scope, $timeout, HostService, TestCaseS
 	
 };
 
-mycontrollers.HostDetailController = function($scope) {
-	
-};
+angular.module("host", ['ngRoute'])
+.controller("HostListController", ['$location', 'HostService', 'TestCaseService', 'MessageService', 'initialData', HostListControllerDef])
+.controller("HostDetailController", ['$routeParams','$location', 'HostService', 'TestCaseService', 'MessageService', 'initialData', HostDetailControllerDef])
+.config(['$routeProvider', function($routeProvider) {
+	$routeProvider
+		.when("/host", {
+			templateUrl: "partials/hosts.html", 
+			controller: "HostListController",
+			controllerAs: "hostCtrl",
+			resolve: { initialData: function(initialHostListDataService) {
+						return initialHostListDataService();
+					} 
+			}
+		})
+		.when("/host/:hostid", {
+			templateUrl: "partials/hostdetail.html", 
+			controller: "HostDetailController",
+			controllerAs: "hostDetailCtrl",
+			resolve: { initialData: function(initialHostDetailDataService) {
+						return initialHostDetailDataService();
+					} 
+			}
+		})
+		;	
+}]);
+
+})();

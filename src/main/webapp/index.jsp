@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
 <title>Test Commander</title>
@@ -8,7 +9,7 @@
 <link type="text/css" rel="stylesheet" href="assets/css/bootstrap.css">
 <link type="text/css" rel="stylesheet" href="assets/css/bootstrap-theme.css">
 
-<script type="text/javascript" src="assets/js/jquery/jquery-1.8.2.min.js"></script>
+<script type="text/javascript" src="assets/js/jquery/jquery.js"></script>
 <script type="text/javascript" src="assets/js/jquery/jquery-ui.js"></script>
 <script type="text/javascript" src="assets/js/jquery/jquery.jqGrid.src.js" charset="utf-8"></script>
 <script type="text/javascript" src="assets/js/jquery/jquery.jqplot.min.js"></script>
@@ -23,16 +24,23 @@
 <script type="text/javascript" src="assets/js/angular/angular-resource.js"></script>
 <script type="text/javascript" src="assets/js/angular/ui-bootstrap-tpls-0.11.2.js"></script>
 <script type="text/javascript" src="assets/js/underscore/underscore.js"></script>
-<script type="text/javascript" src="assets/js/thirdparty/d3.v3.min.js"></script>
 
 <script type="text/javascript" src="assets/js/project/app.js"></script>
 <script type="text/javascript" src="assets/js/project/services.js"></script>
 <script type="text/javascript" src="assets/js/project/directives.js"></script>
 
+<!-- Services  -->
+<script type="text/javascript" src="assets/js/project/scheduleService.js"></script>
+<script type="text/javascript" src="assets/js/project/testcaseService.js"></script>
+<script type="text/javascript" src="assets/js/project/teststatsService.js"></script>
+<script type="text/javascript" src="assets/js/project/testExecutorService.js"></script>
+<script type="text/javascript" src="assets/js/project/testResultService.js"></script>
+<script type="text/javascript" src="assets/js/project/hostService.js"></script>
+
+<!-- Controllers -->
 <script type="text/javascript" src="assets/js/project/home.js"></script>
-<script type="text/javascript" src="assets/js/project/batchtest.js"></script>
 <script type="text/javascript" src="assets/js/project/runtest.js"></script>
-<script type="text/javascript" src="assets/js/project/definetests.js"></script>
+<script type="text/javascript" src="assets/js/project/testcases.js"></script>
 <script type="text/javascript" src="assets/js/project/hosts.js"></script>
 <script type="text/javascript" src="assets/js/project/schedules.js"></script>
 
@@ -50,7 +58,7 @@
           <ul class="nav navbar-nav">
             <li ng-class="getClass('/home')"><a href="#/home">Home</a></li>
             <li ng-class="getClass('/runtest')"><a href="#/runtest">Run Tests</a></li>
-            <li ng-class="getClass('/definetest')"><a href="#/definetest">Define Tests</a></li>
+            <li ng-class="getClass('/tests')"><a href="#/tests">Define Tests</a></li>
             <li ng-class="getClass('/host')"><a href="#/host">Hosts</a></li>
             <li ng-class="getClass('/schedules')"><a href="#/schedules">Schedules</a></li>
           </ul>
@@ -64,11 +72,18 @@
 	  <strong>Error!</strong> {{errorMessage}}
 	</div>
 	
-	<div class="alert alert-success alert-dismissible" role="alert" ng-if="infoMessage != null">
+	<div class="alert alert-info alert-dismissible" role="alert" ng-if="infoMessage != null">
 		<!-- data-dismiss="alert" -->
 	  <button type="button" class="close" ng-click="hideinfo()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
 	  {{infoMessage}}
 	</div>
+
+	<div class="alert alert-success alert-dismissible" role="alert" ng-if="successMessage != null">
+		<!-- data-dismiss="alert" -->
+	  <button type="button" class="close" ng-click="hidesuccess()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+	  {{successMessage}}
+	</div>
+	
 	</div>
 
 	<div data-ng-view>

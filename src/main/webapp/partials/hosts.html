@@ -1,46 +1,35 @@
-<div ng-controller="HostController">
 <h3>Hosts</h3>
 <br/>
 
-<div class="alert alert-danger alert-dismissible" role="alert" ng-if="errormessage != null">
-  <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-  <strong>Error!</strong> {{errormessage}}
-</div>
-
-<div class="alert alert-success alert-dismissible" role="alert" ng-if="infomessage != null">
-  <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-  {{infomessage}}
-</div>
-
-<div ng-show="showlist" class="panel panel-default">
+<div class="panel panel-default">
 	<div class="panel-heading"><h4>Host List</h4></div>
 	<div class="panel-body">
 		<form role="search" class="navbar-form navbar-left">
 		<div class="input-group">
 		<span class="input-group-addon glyphicon glyphicon-search"></span>
-		<input class="form-control" type="text" placeholder="Filter ..." ng-model="searchText">
+		<input class="form-control" type="text" placeholder="Filter ..." ng-model="hostCtrl.searchText">
 		</div>
 		</form>
 		<form class="navbar-form navbar-right">
-		<button class="btn btn-primary" ng-click="refresh()"><span class="glyphicon glyphicon-refresh"></span> Refresh</button> 
-		<button class="btn btn-primary" ng-click="addNewHost()"><span class="glyphicon glyphicon-plus"></span> Add Host</button>
+		<button type="button" class="btn btn-primary" ng-click="hostCtrl.refresh()"><span class="glyphicon glyphicon-refresh"></span> Refresh</button> 
+		<button type="button" class="btn btn-primary" ng-click="hostCtrl.addNewHost()"><span class="glyphicon glyphicon-plus"></span> Add Host</button>
 		</form>
 		<br/>
 		
 		<table class="table table-condensed">
 			<tr><th>Name</th><th>Host</th><th>Port</th><th>Use HTTPS</th><th></th></tr>
-			<tr ng-repeat="host in hosts | filter:searchText">
+			<tr ng-repeat="host in hostCtrl.hosts | filter:hostCtrl.searchText">
 				<td>{{host.name}}</td><td>{{host.hostname}}</td><td>{{host.port}}</td><td>{{host.secureHttp}}</td>
 				<td>
 				<div class="btn-group pull-right">
 					<div class="pull-right">
-					  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+					  <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">
 					    <span class="sr-only">Toggle Dropdown</span>
 					    <span class="caret"></span>
 					  </button>
 					  <ul class="dropdown-menu" role="menu">
-					    <li><a ng-click="editHost(host.id)"><span class="glyphicon glyphicon-edit"></span> Edit</a></li>
-					    <li><a ng-click="deleteHost(host.id)"><span class="glyphicon glyphicon-trash"></span> Delete</a></li>
+					    <li><a ng-click="hostCtrl.editHost(host.id)"><span class="glyphicon glyphicon-edit"></span> Edit</a></li>
+					    <li><a ng-click="hostCtrl.deleteHost(host.id)"><span class="glyphicon glyphicon-trash"></span> Delete</a></li>
 					  </ul>
 					</div>
 				</div>
@@ -48,57 +37,4 @@
 			</tr>
 		</table>	
 	</div>
-</div>
-
-<div ng-show="showHostForm" class="panel panel-default">
-<div class="panel-heading"><h4 ng-if="hostForm.id == -1">Add Host</h4>
-<h4 ng-if="hostForm.id > -1">Edit Host</h4>
-</div>
-<div class="panel-body">
-    <form class="form-horizontal" name="frmhost">
-        <div class="form-group">
-            <label for="categories" class="control-label col-sm-2">Category</label>
-            <div class="col-xs-2">
-				<select class="form-control" id="categories" name="categories" ng-model="hostForm.testCategoryId">
-						<option ng-repeat="cate in categories" value="{{cate.id}}">{{cate.name}}</option>			
-				</select>
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="name" class="control-label col-sm-2">Name</label>
-            <div class="col-xs-10">
-            <input type="text" class="form-control" id="name" name="name" placeholder="Name" ng-model="hostForm.name" required>
-            <span ng-show="frmhost.name.$dirty && frmhost.name.$error.required">(Required)</span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="hostname" class="control-label col-xs-2">Hostname</label>
-            <div class="col-xs-10">
-            <input type="text" class="form-control" id="hostname" name="hostname" placeholder="Hostname or IP Address" ng-model="hostForm.hostname" required>
-            <span ng-show="frmhost.hostname.$dirty && frmhost.hostname.$error.required">(Required)</span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="port" class="control-label col-xs-2">Port</label>
-            <div class="col-xs-10">
-            <input type="number" class="form-control" id="port" name="port" placeholder="Port Number" ng-model="hostForm.port" required>
-            <span ng-show="frmhost.port.$dirty && frmhost.port.$error.required && frmhost.port.$invalid">(Valid number is required)</span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="secureHttp" class="control-label col-xs-2">Use HTTPS</label>
-            <div class="col-xs-2">
-            <input type="checkbox" id="secureHttp" name="secureHttp" ng-model="hostForm.secureHttp">
-            </div>
-        </div>
-        <div class="form-group">
-        	<div class="col-xs-offset-2 col-xs-10 pull-right">
-        	<button class="btn btn-primary" ng-click="saveHost()" ng-disabled="frmhost.$invalid"><span class="glyphicon glyphicon-ok"></span> Save</button>
-        	<button type="reset" class="btn btn-default" ng-click="cancelSave()"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
-        	</div>
-        </div>    
-	</form>
-</div>
-
-</div>
 </div>

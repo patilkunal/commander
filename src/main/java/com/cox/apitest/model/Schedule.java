@@ -1,5 +1,7 @@
 package com.cox.apitest.model;
 
+import java.util.List;
+
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class Schedule {
@@ -8,6 +10,8 @@ public class Schedule {
 	private String name;
 	private String cronExpression;
 	private boolean active;
+	private List<TestCaseInstance> testCaseInstances;
+	
 	public int getId() {
 		return id;
 	}
@@ -31,6 +35,14 @@ public class Schedule {
 	}
 	public void setActive(boolean active) {
 		this.active = active;
+	}
+	
+	public List<TestCaseInstance> getTestCaseInstances() {
+		return testCaseInstances;
+	}
+	
+	public void setTestCaseInstances(List<TestCaseInstance> testCaseInstances) {
+		this.testCaseInstances = testCaseInstances;
 	}
 	
 	@Override

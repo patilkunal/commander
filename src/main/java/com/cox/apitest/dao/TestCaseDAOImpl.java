@@ -9,6 +9,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -46,15 +47,15 @@ public class TestCaseDAOImpl implements TestCaseDAO {
 	
 	private static final String GET_TESTCASEINSTANCES = "select ti.* from TESTCASE_INSTANCE ti, TESTCASE tc where tc.id = ti.TESTCASE_ID and tc.TEST_CATEGORY_ID = :categoryId";
 	private static final String GET_TESTCASEINSTANCE = "select ti.* from TESTCASE_INSTANCE ti where id = :id";
-	private static final String SAVE_TESTCASE_INSTANCE = "insert into TESTCASE_INSTANCE(NAME, DESCRIPTION, TESTCASE_ID) "
-			+ " values(:name, :description, :testCaseId)";
+	private static final String SAVE_TESTCASE_INSTANCE = "insert into TESTCASE_INSTANCE(NAME, DESCRIPTION, TESTCASE_ID, USER_ID) "
+			+ " values(:name, :description, :testCaseId, :userId)";
 	private static final String UPDATE_TESTCASE_INSTANCE = "update TESTCASE_INSTANCE set NAME = :name, DESCRIPTION = :description "
 			+ " where id = :id ";
 	private static final String DELETE_TESTCASE_INSTANCE = "delete from TESTCASE_INSTANCE where id = :id";
 
-	private static final String GET_TESTRUNS = "select tr.id, tr.success, tr.run_date, tr.run_output, ti.id TESTCASE_INSTANCE_ID, ti.name, ti.description, cat.name CATEGORY "
+	private static final String GET_TESTRUNS = "select tr.id, tr.host_id, tr.success, tr.run_date, tr.run_output, ti.id TESTCASE_INSTANCE_ID, ti.name, ti.description, cat.name CATEGORY "
 			+ " from TESTCASE_RUN tr"
-			+ " right outer join TESTCASE_INSTANCE ti  on ti.id =  tr.TESTCASE_INSTANCE_ID"
+			+ " join TESTCASE_INSTANCE ti  on ti.id =  tr.TESTCASE_INSTANCE_ID"
 			+ " inner join TESTCASE tc on  ti.TESTCASE_ID = tc.id"
 			+ " inner join TEST_CATEGORY cat on tc.TEST_CATEGORY_ID = cat.id ";
 	
@@ -72,8 +73,8 @@ public class TestCaseDAOImpl implements TestCaseDAO {
 			+ " values(:testCaseInstanceId, :keyname, :keyvalue)";
 	private static final String DELETE_TESTCASE_VALUES = "delete from TESTCASE_VALUES where TESTCASE_INSTANCE_ID = :testCaseInstanceId";
 	
-	private static final String SAVE_TEST_CASE_RUN = "insert into TESTCASE_RUN(TESTCASE_INSTANCE_ID, SUCCESS, RUN_DATE, RUN_OUTPUT) "
-			+ " values(:testCaseInstanceId, :success, :runDate, :output)";
+	private static final String SAVE_TEST_CASE_RUN = "insert into TESTCASE_RUN(TESTCASE_INSTANCE_ID, HOST_ID, SUCCESS, RUN_DATE, RUN_OUTPUT) "
+			+ " values(:testCaseInstanceId, :hostid, :success, :runDate, :output)";
 	
 	private static final String GET_TEST_CASE_RUN_LIST = "select * from TESTCASE_RUN";
 
@@ -205,6 +206,7 @@ public class TestCaseDAOImpl implements TestCaseDAO {
 			params.put("id", ti.getId());
 			jdbcTemplate.update(UPDATE_TESTCASE_INSTANCE, params);
 		} else {
+			params.put("userId", ti.getUserId());
 			KeyHolder keyHolder = new GeneratedKeyHolder();
 			jdbcTemplate.update(SAVE_TESTCASE_INSTANCE, new MapSqlParameterSource(params), keyHolder, new String[] {"ID"});
 			ti.setId(keyHolder.getKey().intValue());			
@@ -229,7 +231,7 @@ public class TestCaseDAOImpl implements TestCaseDAO {
 	}
 
 	public List<TestCaseRun> getTestCaseRuns(TestCaseRunFilter filter) {
-		StringBuilder sql = new StringBuilder(GET_TESTRUNS);
+		StringBuilder sql = new StringBuilder(GET_TESTRUNS + " where 1=1 ");
 		Map<String, Object> params = new HashMap<String, Object>();
 		if(filter.getTestCaseCategoryId() > -1) {
 			sql.append(" and cat.id = :categoryId");
@@ -244,7 +246,15 @@ public class TestCaseDAOImpl implements TestCaseDAO {
 			params.put("startDate", filter.getStartRunDate());
 			params.put("endDate", filter.getEndRunDate());
 		}
-		return jdbcTemplate.query(sql.toString(), params, new TestCaseRunRowMapper());
+		if(filter.getHistoryCount() > 0) {
+			sql.append(" and ti.user_id = :userid order by id desc");
+			params.put("userid", filter.getUserId());
+			String existingsql = sql.toString();
+			sql.delete(0, sql.length());
+			sql.append("select top :count * from (").append(existingsql).append(")");
+			params.put("count", filter.getHistoryCount());
+		}
+		return jdbcTemplate.query(sql.toString(), params, new TestCaseRunMapper());
 	}
 	
 	public List<Host> getHosts() {
@@ -296,7 +306,8 @@ public class TestCaseDAOImpl implements TestCaseDAO {
 	
 	public TestCaseRun saveTestRun(TestCaseRun run) {
 		Map<String, Object> params = new HashMap<String, Object>();
-		params.put("testCaseInstanceId", run.getTestCaseInstanceId());
+		params.put("testCaseInstanceId", run.getTestCaseInstance().getId());
+		params.put("hostid", run.getHostId());
 		params.put("success", run.isSuccess() ? 1 : 0);
 		params.put("runDate", run.getRunDate());
 		params.put("output", run.getOutput());
@@ -356,18 +367,6 @@ public class TestCaseDAOImpl implements TestCaseDAO {
 		}
 	}
 
-	private final class TestCaseRunRowMapper implements RowMapper<TestCaseRun> {
-		
-		public TestCaseRun mapRow(ResultSet rs, int arg1) throws SQLException {
-			TestCaseRun t = new TestCaseRun();
-			t.setId(rs.getInt("ID"));
-			t.setTestCaseInstanceId(rs.getInt("TESTCASE_INSTANCE_ID"));
-			t.setRunDate(rs.getDate("RUN_DATE"));
-			t.setOutput(rs.getString("RUN_OUTPUT"));
-			return t;
-		}
-	}
-	
 	private final class TestCaseValueRowMapper implements RowMapper<TestCaseValue> {
 		
 		public TestCaseValue mapRow(ResultSet rs, int arg1) throws SQLException {
@@ -399,7 +398,12 @@ public class TestCaseDAOImpl implements TestCaseDAO {
 		public TestCaseRun mapRow(ResultSet rs, int rowNum) throws SQLException {
 			TestCaseRun run = new TestCaseRun();
 			run.setId(rs.getInt("id"));
-			run.setTestCaseInstanceId(rs.getInt("TESTCASE_INSTANCE_ID"));
+			run.setHostId(rs.getInt("host_id"));
+			TestCaseInstance ti = new TestCaseInstance();
+			ti.setId(rs.getInt("TESTCASE_INSTANCE_ID"));
+			ti.setName(rs.getString("NAME"));
+			ti.setDescription(rs.getString("description"));
+			run.setTestCaseInstance(ti);
 			run.setSuccess(rs.getInt("SUCCESS") == 1);
 			run.setRunDate(rs.getDate("RUN_DATE"));
 			run.setOutput(rs.getString("RUN_OUTPUT"));

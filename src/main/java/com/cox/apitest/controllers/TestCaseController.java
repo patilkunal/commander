@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.cox.apitest.dao.TestCaseDAO;
-import com.cox.apitest.manager.TestManager;
+import com.cox.apitest.manager.TestRunManager;
 import com.cox.apitest.model.Host;
 import com.cox.apitest.model.TestCase;
 import com.cox.apitest.model.TestCaseCategory;
@@ -29,7 +29,7 @@ public class TestCaseController {
 	private TestCaseDAO dao;
 	
 	@Autowired
-	private TestManager tm;
+	private TestRunManager tm;
 	
 	@RequestMapping(produces="application/json", value="/categories", method=RequestMethod.GET)
 	public @ResponseBody List<TestCaseCategory> getTestCaseCategories() {		
@@ -109,6 +109,13 @@ public class TestCaseController {
 	public @ResponseBody List<TestCaseRun> getTestCaseRuns(@PathVariable("categoryId") int categoryId) {
 		TestCaseRunFilter filter = new TestCaseRunFilter();
 		filter.setTestCaseCategoryId(categoryId);
+		return dao.getTestCaseRuns(filter);
+	}
+	
+	@RequestMapping(value="/testruns/history/{count}", method=RequestMethod.GET)
+	public @ResponseBody List<TestCaseRun> getTestCaseRunHistory(@PathVariable("count") int count) {
+		TestCaseRunFilter filter = new TestCaseRunFilter();
+		filter.setHistoryCount(count);
 		return dao.getTestCaseRuns(filter);
 	}
 	

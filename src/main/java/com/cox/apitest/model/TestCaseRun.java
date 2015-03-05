@@ -5,7 +5,8 @@ import java.util.Date;
 public class TestCaseRun {
 
 	private int id;
-	private int testCaseInstanceId;
+	private TestCaseInstance testCaseInstance;
+	private int hostId;
 	private boolean success;
 	private Date runDate;
 	private String output;
@@ -16,11 +17,17 @@ public class TestCaseRun {
 	public void setId(int id) {
 		this.id = id;
 	}
-	public int getTestCaseInstanceId() {
-		return testCaseInstanceId;
+	public TestCaseInstance getTestCaseInstance() {
+		return testCaseInstance;
 	}
-	public void setTestCaseInstanceId(int testCaseInstanceId) {
-		this.testCaseInstanceId = testCaseInstanceId;
+	public void setTestCaseInstance(TestCaseInstance testCaseInstance) {
+		this.testCaseInstance = testCaseInstance;
+	}
+	public int getHostId() {
+		return hostId;
+	}
+	public void setHostId(int hostId) {
+		this.hostId = hostId;
 	}
 	public boolean isSuccess() {
 		return success;

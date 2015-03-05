@@ -7,6 +7,8 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
@@ -52,7 +54,7 @@ public class RestHttpClient {
 	private HttpClientBuilder clientBuilder;
 	
 	public RestHttpClient() throws Exception {
-		initialize();
+		//initialize();
 	}
 	
 	@Value("${http.maxconnections}")
@@ -70,6 +72,7 @@ public class RestHttpClient {
 		this.socketTimeout = socketTimeout;
 	}
 	
+	@PostConstruct
 	private void initialize() throws Exception {
 		logger.info("Initializing RestHttpClient");
 		

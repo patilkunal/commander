@@ -1,3 +1,34 @@
+(function(){
+	
+
+function CronSchedule(name, desc, cronexpr) {
+				this.name = name;
+				this.description = desc;
+				this.cronExpression = cronexpr;
+};
+
+var app = angular.module("app");
+
+app.directive("quartzCronBuilder", function() {
+	var schedules = [];
+	schedules.push(new CronSchedule("HOURLY","Every Hour", "0 0 * * * ? *"));
+	schedules.push(new CronSchedule("DAILY", "Once every Day", "0 0 0 * * ? *"));
+	schedules.push(new CronSchedule("WEEKDAYS", "Every Day from Mon-Fri", "0 0 0 ? * 0-6 *"));
+	schedules.push(new CronSchedule("MONTHLY", "Once every month", "0 0 0 0 * ? *"));
+	schedules.push(new CronSchedule("YEARLY", "Once every year", "0 0 0 0 0 ? *"));						
+	return {
+		restrict: 'A',
+		scope: {
+			schedules: []
+			//returnValue: '&cronExpression'
+		},
+		//schedules: ['123', '45'],
+		link: function(scope, elem, attrs) {
+		},
+		template: '<div><select ng-repeat="sch in scope.schedules"><option>{{sch}}</option></select></div>'
+	};
+});
+
 /**
  * 
  */
@@ -5,27 +36,30 @@ app.directive("jqPiechart", function() {
 	return {
 		restrict: 'A',
 		scope: {
-			mydata: '='
+			mydata: '=',
+			showlegend: '=',
+			legendlocation: '='
 		},
 		link: function(scope, elem, attrs) {
-			console.log(elem[0].id);
-			jQuery.jqplot(elem[0].id, [scope.mydata], {
-				title: "Test Case Categories",
-				gridPadding: {top:40, bottom:10, left:10, right:10},
-				seriesDefaults:{
-					renderer:$.jqplot.PieRenderer,
-					rendererOptions: { padding: 8, showDataLabels: true }
-				},
-				legend:{
-					show:true, 
-					placement: 'inside', 
-					rendererOptions: {
-						numberCols: 1
-					}, 
-					location:'e',
-					marginTop: '15px'
-				}
-			});
+			var plotoptions = {
+					title: attrs.charttitle,
+					gridPadding: {top:40, bottom:10, left:10, right:10},
+					seriesDefaults:{
+						renderer:$.jqplot.PieRenderer,
+						rendererOptions: { padding: 8, showDataLabels: true }
+					},
+					legend:{
+						show: scope.showlegend, 
+						placement: 'inside', 
+						rendererOptions: {
+							numberCols: 1
+						}, 
+						location: scope.legendlocation,
+						marginTop: '15px'
+					}
+				};
+			
+			scope.$watch('mydata', function() { jQuery.jqplot(elem[0].id, [scope.mydata], plotoptions); });
 		}
 	};
 });
@@ -36,51 +70,52 @@ app.directive("jqBarchart", function() {
 		scope: {
 			data: '=',
 			categories: '=',
-			series: '='
+			series: '=',
+			showlegend: '=',
+			legendlocation: '='
 		},
 		link: function(scope, elem, attrs) {
-			console.log(elem[0].id);
-			//var s1 = [[1,2,3,8], [5,3,2,1]];
-	        //var ticks = ['a', 'b', 'c', 'd'];
-	        
-			jQuery.jqplot(elem[0].id, scope.data, {
-				title: attrs.title,
-				gridPadding: {top:40 },					
-				stackSeries: false,
-				captureRightClick: true,
-				
-				series: scope.series,
-				seriesDefaults:{
-				  renderer:$.jqplot.BarRenderer,
-				  rendererOptions: {
-					  // Put a 30 pixel margin between bars.
-					  barMargin: 30,
-					  pointLabels: {show: true},
-					  // Highlight bars when mouse button pressed.
-					  // Disables default highlighting on mouse over.
-					  highlightMouseDown: true   
-				  },
-				  pointLabels: {show: true}
-				},
-				axes: {
-				  xaxis: {
-					  renderer: $.jqplot.CategoryAxisRenderer,
-					  ticks: scope.categories
-				  },
-				  yaxis: {
-					// Don't pad out the bottom of the data range.  By default,
-					// axes scaled as if data extended 10% above and below the
-					// actual range to prevent data points right on grid boundaries.
-					// Don't want to do that here.
-					//padMin: 0
-				  }
-				},
-				legend: {
-				  show: true,
-				  location: 'e',
-				  placement: 'outside'
-				}     
-			});
+			var plotoptions = {
+					title: attrs.title,
+					gridPadding: {top:40 },					
+					stackSeries: false,
+					captureRightClick: true,
+					
+					series: scope.series,
+					seriesDefaults:{
+					  renderer:$.jqplot.BarRenderer,
+					  rendererOptions: {
+						  // Put a 30 pixel margin between bars.
+						  barMargin: 30,
+						  pointLabels: {show: true},
+						  // Highlight bars when mouse button pressed.
+						  // Disables default highlighting on mouse over.
+						  highlightMouseDown: true   
+					  },
+					  pointLabels: {show: true}
+					},
+					axes: {
+					  xaxis: {
+						  renderer: $.jqplot.CategoryAxisRenderer,
+						  ticks: scope.categories
+					  },
+					  yaxis: {
+						// Don't pad out the bottom of the data range.  By default,
+						// axes scaled as if data extended 10% above and below the
+						// actual range to prevent data points right on grid boundaries.
+						// Don't want to do that here.
+						//padMin: 0
+					  }
+					},
+					legend: {
+					  show: true,
+					  location: 'nw',
+					  placement: 'outside'
+					}     
+				};
+			
+			//Add a watch on data to update the chart as data changes
+			scope.$watch('data', function() { plotoptions.axes.xaxis.ticks = scope.categories; jQuery.jqplot(elem[0].id, scope.data, plotoptions).replot();});
 		}
 	};
 });
@@ -413,3 +448,5 @@ app.directive("d3Piechart", function() {
 		}
 	};
 });
+
+})();

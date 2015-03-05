@@ -1,0 +1,62 @@
+<h3>Test Cases Detail</h3>
+<br/>
+
+<div class="panel panel-default">
+<div class="panel-heading"><h4 ng-if="testcasedetail.testForm.id == -1">Create Test Case</h4>
+<h4 ng-if="testcasedetail.testForm.id > -1">Edit Test Case</h4>
+</div>
+<div class="panel-body">
+    <form class="form-horizontal" name="frmtestcase">
+        <div class="form-group">
+            <label for="category" class="control-label col-xs-2">Category</label>
+            <div class="col-xs-2">
+            <select class="form-control" id="category" ng-model="testcasedetail.testForm.testCategoryId">
+            	<option ng-repeat="cate in testcasedetail.categories" value="{{cate.id}}">{{cate.name}}</option>
+            </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="name" class="control-label col-xs-2">Name</label>
+            <div class="col-xs-10">
+            <input type="text" class="form-control" id="name" name="name" placeholder="Name" ng-model="testcasedetail.testForm.name" required>
+            <span ng-show="frmtestcase.name.$dirty && frmtestcase.name.$error.required">(Required)</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="description" class="control-label col-xs-2">Description</label>
+            <div class="col-xs-10">
+            <input type="text" class="form-control" id="description" name="description" placeholder="Description" ng-model="testcasedetail.testForm.description">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="method" class="control-label col-xs-2">Method</label>
+            <div class="col-xs-2">
+            <select class="form-control" id="method" ng-model="testcasedetail.testForm.method">
+            	<option ng-repeat="m in testcasedetail.methodTypes" value="{{m}}">{{m}}</option>
+            </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="restUrl" class="control-label col-xs-2">REST Url</label>
+            <div class="col-xs-10">
+            <input type="text" class="form-control" id="restUrl" name="restUrl" placeholder="REST Url (exclude host and port)" ng-model="testcasedetail.testForm.restUrl" required>
+            <span ng-show="frmtestcase.restUrl.$dirty && frmtestcase.restUrl.$error.required">(Required)</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="data" class="control-label col-xs-2">Data (Optional for GET/DELETE)</label>
+            <div class="col-xs-10">
+            <textarea class="form-control" id="data" name="data" placeholder="Data" ng-model="testcasedetail.testForm.data"></textarea>
+            </div>
+        </div>
+        <div class="form-group">
+        	<div class="col-xs-offset-2 col-xs-10 pull-right">
+        	<button type="button" class="btn btn-primary" ng-click="testcasedetail.saveTest()" ng-disabled="frmtestcase.$invalid"><span class="glyphicon glyphicon-ok"></span> Save</button>
+        	<button type="button" class="btn btn-default" ng-click="testcasedetail.cancelSave()"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+        	</div>
+        </div>
+    </form>
+</div>
+</div>
+
+</div>

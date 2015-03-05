@@ -1,0 +1,51 @@
+<div ng-controller="TestInstanceController">
+<h3>Test Case Instance</h3>
+<br/>
+
+<div class="panel panel-default">
+<div class="panel-heading"><h4>Create Test Case Instance</h4></div>
+<div class="panel-content">
+    <form class="form-horizontal" name="frmTestInstance">
+        <div class="form-group">
+            <label for="testcase" class="control-label col-xs-2" valign="top">Test Case</label>
+            <div class="col-xs-10" id="testcase">
+            	Name: {{testCase.name}}<br/>
+            	Rest Url: {{testCase.restUrl}}<br/>
+            	Data: {{testCase.data}}
+			</div>            
+		</div>    	
+        <div class="form-group">
+            <label for="name" class="control-label col-xs-2">Name</label>
+            <div class="col-xs-10">
+            <input type="text" class="form-control" id="name" name="name" placeholder="Name" ng-model="testInstanceForm.name">
+            <span ng-show="frmTestInstance.name.$dirty && frmTestInstance.name.$error.required">(Required)</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="description" class="control-label col-xs-2">Description</label>
+            <div class="col-xs-10">
+            <input type="text" class="form-control" name="description" id="description" placeholder="Description" ng-model="testInstanceForm.description">
+            </div>
+        </div>
+        <div class="form-group">
+        <label for="description" class="control-label col-xs-2">Parameter Values</label>
+        </div>
+        <hr/>
+        <div class="form-group" ng-repeat="tcv in testInstanceForm.testCaseValues" ng-if="testInstanceForm.testCaseValues">        
+            <label for="{{tcv.name}}" class="control-label col-xs-2">{{tcv.name}}</label>
+            <div class="col-xs-10">
+            	<input type="text" class="form-control" id="{{tcv.name}}" name="{{tcv.name}}" ng-model="tcv.value" required>
+            	<span ng-show="frmTestInstance.{{tcv.name}}.$error.required">(Required)</span>            	
+            </div>
+        </div>
+        <div class="form-group">
+        	<div class="col-xs-offset-2 col-xs-10 pull-right">
+        	<button type="button" class="btn btn-primary" ng-click="saveTestCaseInstance()" ng-disabled="frmTestInstance.$invalid"><span class="glyphicon glyphicon-ok"></span> Save</button>
+        	<button type="button" class="btn btn-default" ng-click="cancelSave()"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+        	</div>
+        </div>
+	</form>
+</div>	
+</div>
+
+</div>

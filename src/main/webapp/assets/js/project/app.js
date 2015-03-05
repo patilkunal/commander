@@ -1,9 +1,7 @@
-/**
- * 
- */
-
-//var app = angular.module("app", ['ngResource', 'ngRoute', 'ng.httpLoader', 'angular.jquery'])
-var app = angular.module("app", ['ngResource', 'ngRoute', 'ui.bootstrap.tpls', 'ui.bootstrap.modal']);
+var app = angular.module("app", ['ngResource', 'ngRoute', 'ui.bootstrap.tpls', 'ui.bootstrap.modal', 'home', 'runtests', 'schedule', 'testcases', 'host']);
+app.constant('UserData', {
+	name: ''
+});
 
 var mycontrollers = {};
 var myservices = {};
@@ -56,14 +54,14 @@ myservices.TestProgressService = ["$modal", function($modal){
 	};
 }];
 
-app.factory("httpInterceptor", function(){
+app.factory("myhttpInterceptor", function(){
 	return {
-		request: function(config) {
+		'request': function(config) {
 			console.log("request phase");
 			//ModalService.open();
 			return config;
 		},
-		response: function(response) {
+		'response': function(response) {
 			console.log("response phase");
 			//ModalService.close();
 			return response;
@@ -73,16 +71,11 @@ app.factory("httpInterceptor", function(){
 
 app.config(["$routeProvider", "$httpProvider", function($routeProvider, $httpProvider) {
 	$routeProvider
-		.when("/home", {templateUrl: "partials/home.html", controller: "HomeController"})
-		.when("/batch", {templateUrl: "partials/batchtests.html", controller: "BatchTestController"})
-		.when("/runtest", {templateUrl: "partials/runtest.html", controller: "RunTestController"})
-		.when("/definetest", {templateUrl: "partials/definetests.html", controller: "DefineTestController"})
-		.when("/host", {templateUrl: "partials/hosts.html", controller: "HostController"})
-		.when("/schedules", {templateUrl: "partials/schedules.html", controller: "ScheduleController"})
-		.when("/schedules/:scheduleid", {templateUrl: "partials/scheduledetail.html", controller: "ScheduleDetailController"})
-		.otherwise({redirectTo: "runtest"});
-	$httpProvider.defaults.headers.common.Accept = "application/json, text/plain";
-	//$httpProvider.interceptors.push("httpInterceptor");
+		.otherwise({redirectTo: "home"});
+	//we use default header types
+	//$httpProvider.defaults.headers.common.Accept = "application/json, text/plain";
+	//$http.defaults.headers.common.Authorization = 'Basic YmVlcDpib29w'
+	//$httpProvider.interceptors.push("myhttpInterceptor");
 }]);
 
 /*
@@ -109,23 +102,31 @@ myservices.MessageService = function($rootScope) {
 	
 	service.errorMessage = null;
 	service.infoMessage = null;
+	service.successMessage = null;
 	
 	service.showError = function(errmsg) {
 		this.errorMessage = errmsg;
 		$rootScope.$broadcast('errorHappened');
 	};
 	
+	service.showSuccess = function(msg) {
+		this.successMessage = msg;
+		$rootScope.$broadcast('successHappened');
+	};
+
 	service.showInfo = function(msg) {
 		this.infoMessage = msg;
 		$rootScope.$broadcast('infoHappened');
 	};
+	
 	return service;
 };
 
-mycontrollers.MessageServiceController = function($scope, $timeout, MessageService) {
+mycontrollers.MessageServiceController = function($scope, MessageService) {
 	
 	$scope.errorMessage = null;
 	$scope.infoMessage = null;
+	$scope.successMessage = null;
 	
 	$scope.hideerror = function() {
 		$scope.errorMessage = null;
@@ -134,16 +135,21 @@ mycontrollers.MessageServiceController = function($scope, $timeout, MessageServi
 	$scope.hideinfo = function() {
 		$scope.infoMessage = null;
 	};
+
+	$scope.hidesuccess = function() {
+		$scope.successMessage = null;
+	};
 	
 	$scope.$on('errorHappened', function() {
-		$scope.errorMessage = null;
 		$scope.errorMessage = MessageService.errorMessage;
-		//$timeout($scope.hideerror, 5000);
 	});
 	
 	$scope.$on('infoHappened', function() {
 		$scope.infoMessage = MessageService.infoMessage;
-		//$timeout($scope.hideinfo, 2000);
+	});
+
+	$scope.$on('successHappened', function() {
+		$scope.successMessage = MessageService.successMessage;
 	});
 };
 

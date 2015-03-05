@@ -3,6 +3,7 @@ package com.cox.apitest.model;
 public class TestResult {
 
 	private int testInstanceId;
+	private int hostId;
 	private String name;
 	private int returnCode;
 	private String error;
@@ -14,6 +15,12 @@ public class TestResult {
 	}
 	public void setTestInstanceId(int testInstanceId) {
 		this.testInstanceId = testInstanceId;
+	}
+	public int getHostId() {
+		return hostId;
+	}
+	public void setHostId(int hostId) {
+		this.hostId = hostId;
 	}
 	public String getName() {
 		return name;

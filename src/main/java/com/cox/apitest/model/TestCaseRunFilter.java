@@ -9,6 +9,7 @@ public class TestCaseRunFilter {
 	private Date startRunDate;
 	private Date endRunDate;
 	private int historyCount;
+	private int userId;
 	
 	public int getTestCaseInstanceId() {
 		return testCaseInstanceId;
@@ -40,6 +41,12 @@ public class TestCaseRunFilter {
 	}
 	public void setHistoryCount(int historyCount) {
 		this.historyCount = historyCount;
+	}
+	public void setUserId(int userId) {
+		this.userId = userId;
+	}
+	public int getUserId() {
+		return userId;
 	}
 	
 }
