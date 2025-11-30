@@ -1,7 +1,7 @@
 package com.inovisionsoftware.apitest.scheduler;
 
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
+import jakarta.servlet.ServletContextEvent;
+import jakarta.servlet.ServletContextListener;
 
 public class TestScheduleListener implements ServletContextListener {
 

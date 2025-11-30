@@ -3,9 +3,8 @@ package com.inovisionsoftware.apitest.manager;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.PostConstruct;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletContext;
 
 import org.quartz.CronScheduleBuilder;
 import org.quartz.CronTrigger;

@@ -1,6 +1,9 @@
 package com.inovisionsoftware.apitest.model;
 
 import org.springframework.http.HttpMethod;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+
 
 public class TestCase {
 
@@ -9,6 +12,7 @@ public class TestCase {
 	private String name;
 	private String description;
 	private String restUrl;	
+	@JsonSerialize(using=ToStringSerializer.class)
 	private HttpMethod method = HttpMethod.GET;
 	private String data;
 	
